@@ -1,0 +1,10 @@
+#tomcat端口
+server:
+  port:
+# DataSource CivConfig
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url:
+    username:
+    password:
