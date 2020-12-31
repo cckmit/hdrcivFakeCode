@@ -10,5 +10,5 @@ import org.springframework.stereotype.Repository;
  * @date 2020/12/25
  */
 @Repository
-public interface ConfigMapper extends BaseMapper<CivConfig> {
+public interface CivConfigMapper extends BaseMapper<CivConfig> {
 }

@@ -49,6 +49,14 @@ public class CivConfig {
     @TableField
     private String configDescription;
     /**
+     * 配置项分组的英文名称
+     */
+    private String groupCode;
+    /**
+     * 配置项分组的中文名称
+     */
+    private String groupName;
+    /**
      * 配置项的创建时间
      */
     @TableField
@@ -59,13 +67,16 @@ public class CivConfig {
     @TableField
     private Date lastUpdateTime;
     /**
-     * 配置项是否生效，true表示生效，false表示无效
+     * 配置项是否生效，Y表示生效，N表示无效
      */
     @TableField
-    private Boolean isActive;
+    private String isActive;
 
 
-    //自动生成常规属性的get、set方法
+    /**
+     * 自动生成常规属性的get、set方法
+     */
+
     public static Map<String, String> getConfigCache() {
         return CONFIG_CACHE;
     }
@@ -80,6 +91,30 @@ public class CivConfig {
 
     public String getConfigCode() {
         return configCode;
+    }
+
+    public String getGroupCode() {
+        return groupCode;
+    }
+
+    public void setGroupCode(String groupCode) {
+        this.groupCode = groupCode;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
+
+    public String getIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(String isActive) {
+        this.isActive = isActive;
     }
 
     public void setConfigCode(String configCode) {
@@ -118,12 +153,28 @@ public class CivConfig {
         this.createTime = createTime;
     }
 
-    public Date getUpdateTime() {
-        return updateTime;
+    public Date getLastUpdateTime() {
+        return lastUpdateTime;
     }
 
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
+    public void setLastUpdateTime(Date lastUpdateTime) {
+        this.lastUpdateTime = lastUpdateTime;
+    }
+
+    @Override
+    public String toString() {
+        return "CivConfig{" +
+                "id=" + id +
+                ", configCode='" + configCode + '\'' +
+                ", configName='" + configName + '\'' +
+                ", configValue='" + configValue + '\'' +
+                ", configDescription='" + configDescription + '\'' +
+                ", groupCode='" + groupCode + '\'' +
+                ", groupName='" + groupName + '\'' +
+                ", createTime=" + createTime +
+                ", lastUpdateTime=" + lastUpdateTime +
+                ", isActive='" + isActive + '\'' +
+                '}';
     }
 }
 
