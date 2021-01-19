@@ -1,35 +1,30 @@
 package 接口;
 
-import com.goodwill.core.orm.Page;
-import com.goodwill.core.utils.json.JsonUtil;
-import com.goodwill.hdr.civ.base.action.CIVAction;
-import com.goodwill.hdr.civ.config.Config;
-import com.goodwill.hdr.civ.web.entity.CommonConfig;
-import com.goodwill.hdr.civ.web.service.CommonURLService;
-import com.goodwill.hdr.civ.web.service.NursingService;
-import com.goodwill.hdr.civ.web.service.OperService;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
+
+import 逻辑.CommonURLService;
+import 逻辑.NursingService;
+import 逻辑.OperService;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * @author zhaowenkai
- * @Description 类描述：手术Action
- * @Date 2018年6月19日
- * @modify 修改记录：
+ * 手术Action
+ *
+ * @author 余涛
+ * @date 2021/1/19
  */
-public class OperationAction extends CIVAction {
+
+public class OperationAction {
 
     private static final long serialVersionUID = 1L;
-    @Autowired
+
     private OperService operService;
-    @Autowired
+
     private CommonURLService commonURLService;
-    @Autowired
+
     private NursingService nursingService;
     /**
      * @Description 某次就诊的手术记录
@@ -192,14 +187,17 @@ public class OperationAction extends CIVAction {
     }
 
     /**
-     * @Description
+     *
      * 住院的就诊列表
+     * @param patientId 患者id
+     * @param visitType 就诊类型，01门诊，02住院
+     * @param year 年份
      */
-    public void getAllINVisits() {
-        String year = getParameter("year");
-        List<Map<String, String>> rs=new ArrayList<Map<String,String>>();
-        rs = nursingService.getAllINVisitsForOper(patientId,visitType, year);
-        renderJson(JsonUtil.getJSONString(rs));
+    public void getAllINVisits(String patientId,String visitType,String year) {
+
+       /*将参数传给service层接口*/
+         nursingService.getAllINVisitsForOper(patientId,visitType, year);
+
     }
 
 }

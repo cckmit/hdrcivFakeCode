@@ -135,126 +135,74 @@ public class NursingService {
         return visits;
     }
 
+    /**
+     *
+     * 住院的就诊列表
+     * @param patientId 患者id
+     * @param visitType 就诊类型，01门诊，02住院
+     * @param year 年份
+     */
+    public void getAllINVisitsForOper(String patientId, String visitType, String year) {
 
-    public List<Map<String, String>> getAllINVisitsForOper(String patientId, String visitType, String year) {
-        // TODO Auto-generated method stub
-        //就诊列表
-        List<Map<String, String>> visits = new ArrayList<Map<String, String>>();
-        if (StringUtils.isBlank(year)) {
-            Calendar date = Calendar.getInstance();
-            year = String.valueOf((date.get(Calendar.YEAR) + 1));
-        }
-        String visitPid = visitType + "|" + patientId;
-        //key:就诊类型|门诊和住院患者编号    value:就诊类型
-        Map<String, String> pidInpNo = new HashMap<String, String>();
-        //先放入当前传入的就诊类型 和 患者编号
-        pidInpNo.put(visitPid, visitPid);
 
-        //根据主索引查询 Solr 处理门诊患者标识和住院患者标识不一致情况
-        Map<String, String> patInfos = getInfoFromPatient(patientId, visitType);
-        String EID = patInfos.get("EID");
-        if (StringUtils.isNotBlank(EID) && !"EID未知".equals(EID)) {
-            //查询条件
-            String q = "*:* AND ";
-            q += "EID:" + EID;
-            //通过EID查询solr
-            ResultVO docsMap = SolrQueryUtils.querySolr(SolrUtils.patInfoCollection, q, null, new String[]{"IN_PATIENT_ID", "OUT_PATIENT_ID", "INP_NO", "PERSON_NAME", "SEX_NAME", "DATE_OF_BIRTH", "VISIT_TYPE_CODE"}, 10000, 1, null, null);
-            List<Map<String, String>> docList = docsMap.getResult();
-            for (Map<String, String> doc : docList) {
-                String pid = (String) (doc.get("IN_PATIENT_ID") == null ? doc.get("OUT_PATIENT_ID") : doc.get("IN_PATIENT_ID"));
-                String visit_type = (String) doc.get("VISIT_TYPE_CODE");
-                if (StringUtils.isNotBlank(pid) && StringUtils.isNotBlank(visit_type)) {
-                    pidInpNo.put(visit_type + "|" + pid, visit_type + "|" + pid);
-                }
-            }
-        }
-        int num = 0;
-        while (num != 21) {
-            year = (Integer.valueOf(year) - 1) + "";
-            //根据上述筛选后的患者编号和就诊类型   获取所有就诊列表
-            for (Map.Entry<String, String> entry : pidInpNo.entrySet()) {
-                String[] vtpid = entry.getKey().split("\\|");
-//                if ("02".equals(vtpid[0])) {
-                getVisitsAndAddToVisits(visits, vtpid[1], year);
-//                }
-            }
-            num++;
-            if (num == 20)
-                break;
-        }
-        return visits;
+        //根据主索引查询 Solr 处理门诊患者标识和住院患者id不一致情况
+
+       /* 将 patientId, visitType 参数传给下一级 */
+         getInfoFromPatient(patientId, visitType);
+       /*
+        从查询结果中获取 EID ，
+        如果 EID不为空，且 EID的值不等于 "EID未知" ，那么 括号1 {
+            设置solr的查询条件为： *:*AND EID:（这里填充刚获取的EID值）；
+            从mysql的civ_config表中读取 patInfoCollection 配置项，获取solr集合的名称；
+            根据查询条件从对应的solr集合中查询字段：
+            括号2 {
+                "IN_PATIENT_ID", "OUT_PATIENT_ID", "INP_NO", "PERSON_NAME",
+                        "SEX_NAME", "DATE_OF_BIRTH", "VISIT_TYPE_CODE"
+            } 括号2 ；
+            查出的记录中，如果 IN_PATIENT_ID 为空，则设置 IN_PATIENT_ID = OUT_PATIENT_ID
+
+        } 括号1
+        */
+
+/*
+        循环调用 getVisitsAndAddToVisits 方法，根据前面查出的 IN_PATIENT_ID，查询当前年份往前20年的就诊记录
+            （以下为调用连接,传入的参数无意义）：*/
+            getVisitsAndAddToVisits(null,null,null);
+
     }
 
     /**
      * @param visits    存储就诊列表的集合
      * @param patientId 患者编号
-     * @param visitType 就诊类型
-     * @return 返回类型： void
-     * @Description 方法描述: 根据患者编号和就诊类型查询该类型下的就诊列表，并将数据填充到visits
+     *  方法描述: 根据患者编号和年份查询就诊列表
      */
     private void getVisitsAndAddToVisits(List<Map<String, String>> visits, String patientId, String year) {
-        List<PropertyFilter> filters = new ArrayList<PropertyFilter>();
-        filters.add(new PropertyFilter("ADMISSION_TIME", "STRING", MatchType.GE.getOperation(), year + "-01-01 00:00:00"));
-        filters.add(new PropertyFilter("ADMISSION_TIME", "STRING", MatchType.LE.getOperation(), year + "-12-31 23:59:59"));
-        //住院
-        filters.add(new PropertyFilter("TRANS_NO", "STRING", MatchType.EQ.getOperation(), "0")); //仅取入出院，不取转科
-        List<Map<String, String>> patAdts = hbaseDao.findConditionByPatient(HdrTableEnum.HDR_PAT_ADT.getCode(),
-                patientId, filters, new String[]{"DEPT_DISCHARGE_FROM_CODE", "DEPT_DISCHARGE_FROM_NAME",
-                        "ADMISSION_TIME", "DISCHARGE_TIME", "VISIT_ID", "DEPT_ADMISSION_TO_NAME",
-                        "DEPT_ADMISSION_TO_CODE", "INP_NO", "IN_PATIENT_ID"});
-        for (Map<String, String> adt : patAdts) {
-            Map<String, String> covert = new HashMap<String, String>();
-            covert.put("END_DEPT_CODE", adt.get("DEPT_DISCHARGE_FROM_CODE")); //出院科室
-            covert.put("END_DEPT_NAME", adt.get("DEPT_DISCHARGE_FROM_NAME"));
-            covert.put("START_DEPT_NAME", adt.get("DEPT_ADMISSION_TO_NAME")); //入院科室
-            covert.put("START_DEPT_CODE", adt.get("DEPT_ADMISSION_TO_CODE"));
-            covert.put("START_TIME", adt.get("ADMISSION_TIME")); //入院时间
-            covert.put("END_TIME", adt.get("DISCHARGE_TIME")); //出院时间
-            covert.put("VISIT_ID", adt.get("VISIT_ID")); //就诊次数
-            //查询本次住院诊断  主诊断
-            String visitId = adt.get("VISIT_ID");
-            if (!covert.isEmpty()) {
-                covert.put("INP_NO", adt.get("INP_NO"));
-                covert.put("VISIT_TYPE", "INPV");
-                covert.put("NOW_PATIENT", adt.get("IN_PATIENT_ID"));//区分传入的患者编号和通过EID关联出来的患者编号
-                visits.add(covert);
-            }
-        }
+      /*
+        增设查询条件 ADMISSION_TIME 大于等于 year-01-01 00:00:00;
+        增设查询条件 ADMISSION_TIME 小于等于 year-12-31 23:59:59;
+        增设查询条件 TRANS_NO 等于 0;
+        根据patientId，结合所有查询条件，从 HDR_PAT_ADT 中查出字段：
+        {"DEPT_DISCHARGE_FROM_CODE", "DEPT_DISCHARGE_FROM_NAME",
+         "ADMISSION_TIME", "DISCHARGE_TIME", "VISIT_ID", "DEPT_ADMISSION_TO_NAME",
+         "DEPT_ADMISSION_TO_CODE", "INP_NO", "IN_PATIENT_ID"}
+        返回给上一级。
+        */
     }
 
 
-    public Map<String, String> getInfoFromPatient(String patientId, String visitType) {
-        Map<String, String> infos = new HashMap<String, String>();
-        infos.put("PATIENT_ID", patientId);
-        List<PropertyFilter> filters = new ArrayList<PropertyFilter>();
-        if (StringUtils.isNotBlank(visitType)) {
-            filters.add(new PropertyFilter("VISIT_TYPE_CODE", "STRING", MatchType.EQ.getOperation(), visitType));
+    public void getInfoFromPatient(String patientId, String visitType) {
+/*
+        如果 visitType 不为空，那么增设查询条件{
+            "VISIT_TYPE_CODE" = visitType;
         }
-        //可能得到两条记录  门诊患者信息 和 住院患者信息
-        List<Map<String, String>> indexs = hbaseDao.findConditionByPatient(HdrTableEnum.HDR_PATIENT.getCode(),
-                patientId, filters, new String[]{"EID", "PERSON_NAME", "SEX_NAME", "DATE_OF_BIRTH", "INP_NO",
-                        "OUTP_NO", "IN_PATIENT_ID", "OUT_PATIENT_ID"});
-        if (indexs.size() == 0) { //未找到患者
-            infos.put("STATUS", "0");
-            return infos;
-        }
-        //循环遍历患者信息  记录需要的字段
-        for (Map<String, String> one : indexs) {
-            Utils.checkAndPutToMap(infos, "PERSON_NAME", one.get("PERSON_NAME"), "", false);
-            Utils.checkAndPutToMap(infos, "SEX_NAME", one.get("SEX_NAME"), "", false);
-            Utils.checkAndPutToMap(infos, "EID", one.get("EID"), "", false);
-            Utils.checkAndPutToMap(infos, "INP_NO", one.get("INP_NO"), "住院号未知", false);
-            Utils.checkAndPutToMap(infos, "OUTP_NO", one.get("OUT_NO"), "门诊号未知", false);
-            Utils.checkAndPutToMap(infos, "IN_PATIENT_ID", one.get("IN_PATIENT_ID"), "", false);
-            Utils.checkAndPutToMap(infos, "OUT_PATIENT_ID", one.get("OUT_PATIENT_ID"), "", false);
-            Utils.checkAndPutToMap(infos, "DATE_OF_BIRTH", one.get("DATE_OF_BIRTH"), "", false);
-        }
-        //处理出生日期
-        String birthday = infos.get("DATE_OF_BIRTH");
-        if (StringUtils.isNotBlank(birthday)) {
-            infos.put("DATE_OF_BIRTH", Utils.getDate("yyyy-MM-dd", birthday));
-        }
-        return infos;
+
+        根据 patientId 和所有的查询条件，从 HDR_PATIENT 表中查出 {"EID", "PERSON_NAME", "SEX_NAME", "DATE_OF_BIRTH", "INP_NO",
+                "OUTP_NO", "IN_PATIENT_ID", "OUT_PATIENT_ID"}字段。
+        如果未查任何记录，返回给上一级 STATUS = 0 ；
+
+        如果查出记录，将记录返回给上一级。
+*/
+
     }
 
     /**

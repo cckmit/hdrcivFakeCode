@@ -1,52 +1,44 @@
 package 接口;
 
-import com.goodwill.core.orm.Page;
-import com.goodwill.core.utils.json.JsonUtil;
-import com.goodwill.hdr.civ.base.action.CIVAction;
-import com.goodwill.hdr.civ.config.Config;
-import com.goodwill.hdr.civ.web.entity.CommonConfig;
-import com.goodwill.hdr.civ.web.service.*;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import 逻辑.CommonURLService;
+import 逻辑.NursingService;
+import 逻辑.OperService;
+import 逻辑.SummaryService;
 
 /**
- * @author zhaowenkai
- * @Description 类描述：门诊就诊Action
- * @Date 2018年4月19日
- * @modify 修改记录：
+ *
+ * 门诊就诊Action
+ * @author 余涛
+ * @date 2021年1月19日
  */
-public class VisitAction extends CIVAction {
+public class VisitAction  {
 
 	private static final long serialVersionUID = 1L;
 
-	@Autowired
 	private VisitService visitService;
-	@Autowired
+
 	private SummaryService summaryService;
-	@Autowired
+
 	private OrderService orderService;
-	@Autowired
+
 	private InspectReportService inspectReportService;
-	@Autowired
+
 	private CheckReportService checkReportService;
-	@Autowired
+
 	private PathologyReportService pathologyReportService;
-	@Autowired
+
 	private MedicalRecordService medicalRecordService;
-	@Autowired
+
 	private OperService operService;
-	@Autowired
+
 	private CommonURLService commonURLService;
-	@Autowired
+
 	private AllergyService allergyService;
-	@Autowired
+
 	private NursingService nursingService;
 
-	@Autowired
+
 	private GlobalService globalService;
 
 	/**
@@ -138,13 +130,22 @@ public class VisitAction extends CIVAction {
 
 	/**
 	 * 费用明细数据
+	 * @param patientId  患者id
+	 * @param visitId 就诊次数
+	 * @param visitType 就诊类型
+	 * @param feeType 费用类型
+	 * @param pageNo 当前页码
+	 * @param pageSize 每页大小
+	 *
 	 */
-	public void getPatientInpSummaryFeeDetail() {
-		String feeType = getParameter("feeType");
-		Page<Map<String, String>> result = summaryService.getPatientInpSummaryFeeData(patientId, visitId, visitType,
+	public void getPatientInpSummaryFeeDetail(String patientId,String visitId,
+											  String visitType,String feeType,
+											 int pageNo,int pageSize) {
+
+		/*将前端参数传递给逻辑层，处理后返回给前端*/
+		 summaryService.getPatientInpSummaryFeeData(patientId, visitId, visitType,
 				feeType, pageNo, pageSize);
-		//响应
-		renderJson(JsonUtil.getJSONString(result));
+
 	}
 
 	/**
