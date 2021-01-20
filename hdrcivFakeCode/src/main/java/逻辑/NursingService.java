@@ -165,7 +165,7 @@ public class NursingService {
         */
 
 /*
-        循环调用 getVisitsAndAddToVisits 方法，根据前面查出的 IN_PATIENT_ID，查询当前年份往前20年的就诊记录
+        循环调用 getVisitsAndAddToVisits 方法，根据前面查出的 IN_PATIENT_ID，查询当前年份往前20年的就诊记录返回给前端
             （以下为调用连接,传入的参数无意义）：*/
             getVisitsAndAddToVisits(null,null,null);
 

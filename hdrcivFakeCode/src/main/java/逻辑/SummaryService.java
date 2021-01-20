@@ -278,8 +278,8 @@ public class SummaryService  {
 	@Override
 	public void getPatientFeeTable(String visitType){
 	/*	根据 visitType 从mysql的civ_config表中读取配置，
-		住院读取 FEE_TABLE_IN_CHARGE_CONFIG 配置项
-		门诊读取 FEE_TABLE_OUT_CHARGE_CONFIG 配置项
+		住院 INPV 读取 FEE_TABLE_IN_CHARGE_CONFIG 配置项
+		门诊 OUTPV读取 FEE_TABLE_OUT_CHARGE_CONFIG 配置项
 	*/
 	}
 
@@ -357,12 +357,12 @@ public class SummaryService  {
 	/*使用用visit_type，调用 getPatientFeeTable 获取表头配置*/
 		getPatientFeeTable(visitType);
 
-	/*	住院患者查询对应表名 HDR_IN_CHARGE ；
-		门诊患者查询对应表名 HDR_OUT_CHARGE ；
+	/*	住院患者 INPV 查询对应表名 HDR_IN_CHARGE ；
+		门诊患者 OUTPV 查询对应表名 HDR_OUT_CHARGE ；
 	*/
 
 	/*	如果 visitType 不为空，那么增设查询条件{
-			"VISIT_TYPE_CODE" = visitType
+			"VISIT_TYPE_CODE" = （住院02，门诊01）
 		}
 	*/
 
