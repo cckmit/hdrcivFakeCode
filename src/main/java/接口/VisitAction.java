@@ -1,10 +1,7 @@
 package 接口;
 
 
-import 逻辑.CommonURLService;
-import 逻辑.NursingService;
-import 逻辑.OperService;
-import 逻辑.SummaryService;
+import 逻辑.*;
 
 /**
  *
@@ -38,8 +35,6 @@ public class VisitAction  {
 
 	private NursingService nursingService;
 
-
-	private GlobalService globalService;
 
 	/**
 	 * @Description 获取患者就诊列表
@@ -158,21 +153,22 @@ public class VisitAction  {
 	}
 
 	/**
-	 * @Description 获取患者末次就诊的信息
+	 *  获取患者末次就诊的信息，显示在顶部
+	 * @param patientId 患者编号
+	 * @param outPatientId 关联的患者编号
+	 * @param visitType 就诊类型
 	 */
-	public void getPatientFinalVisit() {
-		String outPatientId = getParameter("outPatientId");
-		Map<String, String> result = new HashMap<String, String>();
-		Map<String, String> config = new HashMap<String, String>();
-		if (StringUtils.isNotBlank(patientId)) {
-			result = visitService.getCurrentPatientInfo(patientId, outPatientId, visitType);
-			config = orderService.getPatLastInfoViewConfig();
+	public void getPatientFinalVisit(String patientId, String outPatientId, String visitType) {
+
+	/*	如果 patientId 不为空，那么{
+			将参数传给逻辑层，调用 getCurrentPatientInfo 方法，获取数据；
+			调用逻辑层 getPatLastInfoViewConfig 方法，获取配置；
 		}
-		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("viewConfig", config);
-		map.put("data", result);
-		//响应
-		renderJson(JsonUtil.getJSONString(map));
+	*/
+		visitService.getCurrentPatientInfo(patientId, outPatientId, visitType);
+		orderService.getPatLastInfoViewConfig();
+	/* 将数据和配置信息返回给前端*/
+
 	}
 	/**
 	 * @Description 通过pid，vid和visitType获取患者就诊信息
