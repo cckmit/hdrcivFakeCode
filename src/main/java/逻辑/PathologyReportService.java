@@ -6,70 +6,43 @@ import java.util.*;
 
 public class PathologyReportService  {
 
-
-
-
-	private HbaseDao hbaseDao;
-
 	private PowerService powerService;
-
 
 	private PersonalConfigService personalConfigService;
 
-
 	private SpecialtyViewPowerService specialtyViewPowerService;
 
-	@Override
-	public Page<Map<String, String>> getPathologyReportList(String patId, String visitId, String visitType,
+	/**
+	 * 方法描述: 查询患者某次就诊的病理报告
+	 * @param patId 患者编号
+	 * @param visitId 就诊次数
+	 * @param visitType 就诊类型
+	 * @param orderBy 排序字段 "REPORT_TIME"
+	 * @param orderDir 排序规则 "desc"
+	 * @param mainDiag 主诊断  ""
+	 * @param deptCode 科室编号 ""
+	 * @param pageNo 页码
+	 * @param pageSize 分页单位
+	 */
+	public void getPathologyReportList(String patId, String visitId, String visitType,
 			String orderBy, String orderDir, String mainDiag, String deptCode, int pageNo, int pageSize) {
-		//分页 排序
-		Page<Map<String, String>> page = new Page<Map<String, String>>();
-		//分页
-		boolean pageable = true;
-		if (pageNo == 0 || pageSize == 0) {
-			pageable = false;
-		} else {
-			page.setPageNo(pageNo);
-			page.setPageSize(pageSize);
-		}
-		//排序
-		if (StringUtils.isBlank(orderBy) || StringUtils.isBlank(orderDir)) {
-			page.setOrderBy("REPORT_TIME");
-			page.setOrderDir(Sort.DESC);
-		} else {
-			page.setOrderBy(orderBy);
-			page.setOrderDir(orderDir);
-		}
-		try {
-			if ("INPV".equals(visitType)) { //住院病理报告
-				page = getInpvExamReports(page, patId, visitId, mainDiag, deptCode, pageable);
-			} else if ("OUTPV".equals(visitType)) { //门诊病理报告
-				page = getOutpvExamReports(page, patId, visitId, mainDiag, deptCode, pageable);
-			}
-		} catch (Exception e) {
-			logger.error("查询hbase数据库失败！ ", e);
-			throw new ApplicationException("查询病理报告失败！" + e.getCause());
-		}
-		//字段映射
-		List<Map<String, String>> exams = new ArrayList<Map<String, String>>();
-		for (Map<String, String> map : page) {
-			//处理病理诊断
-			String examDiag = map.get("EXAM_DIAG");
-			if (StringUtils.isNotBlank(examDiag)) {
-				//去掉 \X000d\
-				if (examDiag.contains("\\X000d\\")) {
-					map.put("EXAM_DIAG", examDiag.replace("\\X000d\\", ""));
-				}
-			}
-			Map<String, String> exam = new HashMap<String, String>();
-			ColumnUtil.convertMapping(exam, map,
-					new String[] {  "EXAM_ITEM_NAME", "REPORT_TIME", "EXAM_DIAG" ,"REPORT_NO"});
-			exams.add(exam);
-		}
-		//重置分页
-		page.setResult(exams);
 
-		return page;
+	/*	如果 pageNo 等于 0 或 pageSize 等于 0 ，表示不可分页；*/
+
+	/*	如果 visitType 等于 "INPV" ，调用 ：
+			@param page 分页参数的集合
+			@param pageable	是否可分页
+	*/
+			getInpvExamReports(page, patId, visitId, mainDiag, deptCode, pageable);
+	/*	如果 visitType 等于 "OUTPV" ，调用 ：
+			@param page 分页参数的集合
+			@param pageable	是否可分页
+	*/
+			getOutpvExamReports(page, patId, visitId, mainDiag, deptCode, pageable)
+	/*	将 "EXAM_DIAG" 中的换行，替换成空白字符串；
+		将个字段映射完返回给前端。*/
+
+
 	}
 
 	/**
@@ -126,17 +99,22 @@ public class PathologyReportService  {
 	 * @param patientId 患者编号
 	 * @param visitId   就诊次数
 	 * @param pageable  是否分页
-	 * @return 分页对象
-	 * @Description 方法描述: 查询患者某次住院的病理报告
+	 * 方法描述: 查询患者某次住院的病理报告
 	 */
 	private Page<Map<String, String>> getInpvExamReports(Page<Map<String, String>> page, String patientId,
 			String visitId, String mainDiag, String deptCode, boolean pageable) {
 		List<Map<String, String>> exams = new ArrayList<Map<String, String>>();
 		//优先 根据vid查询
 		List<PropertyFilter> filters = new ArrayList<PropertyFilter>();
+
 		//病理报告权限筛选
+
+		/*获取当前用户名，将用户名作为参数调用 getPowerConfigByPathology ，获取用户权限*/
+			powerService.getPowerConfigByPathology(usercode);
+
 		String usercode = SecurityUtils.getCurrentUserName(); //在线用户
 		//String usercode = "admin";
+
 		Map<String, Object> power = powerService.getPowerConfigByPathology(usercode);
 		if ("false".equals(power.get("isAll"))) {
 			List<String> typeList = (List<String>) power.get("power");

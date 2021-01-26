@@ -1,40 +1,31 @@
 package 逻辑;
 
-import com.goodwill.core.orm.Page;
-import com.goodwill.core.orm.Page.Sort;
-import com.goodwill.core.utils.PropertiesUtils;
-import com.goodwill.hdr.civ.config.Config;
-import com.goodwill.hdr.civ.config.ConfigCache;
-import com.goodwill.hdr.civ.enums.HdrConstantEnum;
-import com.goodwill.hdr.civ.utils.Utils;
-import com.goodwill.hdr.civ.web.dao.PowerDao;
-import com.goodwill.hdr.civ.web.entity.CommonConfig;
-import com.goodwill.hdr.civ.web.service.*;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+
+import 数据库访问.PowerDao;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-@Service
-@Transactional
-public class PowerService implements PowerService {
+/**
+ * 权限相关
+ * @author 余涛
+ * @date 2021/1/26
+ */
+public class PowerService  {
 
-	@Autowired
+
 	PowerDao powerDao;
 
-	@Autowired
+
 	private PatientListService patientListService;
-    @Autowired
+
     private OperService operService;
 
-    @Autowired
+
     private OrderService orderService;
 
-    @Autowired
     private CommonURLService commonURLService;
 
 	private static final String CONFIG_FILE_NAME = "civ.properties";
@@ -776,39 +767,33 @@ public class PowerService implements PowerService {
 		return result;
 	}
 
-	@Override
+	/**
+	 *
+	 * @param userCode 用户名
+	 */
 	public Map<String, Object> getPowerConfigByPathology(String userCode) {
-		// TODO Auto-generated method stub
-		Map<String, Object> result = new HashMap<String, Object>();
-		String admin = Config.getCiv_Admin();
-		if (admin.equals(userCode)) {
-			result.put("isAll", "true");
-			result.put("power", "all");
-			return result;
+
+		从mysql的civ_config表 CIV_ADMIN 配置项中读取管理员用户名；
+		如果 userCode 等于 管理员，那么 {
+			返回给上一级("isAll", "true")，("power", "all")；
+			终止执行退回上一级；
 		}
-		Map<String, String> map = new HashMap<String, String>();
-		map = powerDao.getPowerConfigByType(userCode, "Pathology");
-		if (StringUtils.isBlank(map.get("itemCodes"))) {
-			String deptcode = powerDao.selectDeptByUser(userCode);
-			map = powerDao.getPowerConfigByDeptAndType(deptcode, "Pathology");
+
+		设置查询条件 user_code = userCode and type = "Pathology";
+		根据查询条件，从mysql表 civ_power_config 中查询相应结果并映射到userCode、deptCode、type、itemCodes；
+		如果 itemCodes 为空，那么 {
+			根据userCode从security_user表中查出deptCode；
+			设置查询条件 dept_code = deptCode and type = "Pathology",
+			根据查询条件从 civ_power_config_dept 查出相应结果并映射到deptCode、type、itemCodes；
 		}
-		String[] values = map.get("itemCodes").toString().split("/");
-		List<String> tmp = new ArrayList<String>();
-		for (int i = 0; i < values.length; i++) {
-			if (StringUtils.isNotBlank(values[i])) {
-				tmp.add(values[i]);
-			}
+		如果 itemCodes 包含了 "all"，那么 {
+			返回给上一级("isAll", "true")，("power", "all")；
+		} 否则 {
+			返回给上一级("isAll", "false")，("power", 查出的itemCodes)；
 		}
-		//如果权限中包含all，则返回true，不包含all，返回false和相应权限
-		if (tmp.contains("all")) {
-			result.put("isAll", "true");
-			result.put("power", "all");
-		} else {
-			result.put("isAll", "false");
-			result.put("power", tmp);
-		}
-		return result;
+
 	}
+
 
 	@Override
 	public Map<String, String> updatePowerConfigByUser(String userCodes, String Current, String Specialty,

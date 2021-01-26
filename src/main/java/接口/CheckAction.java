@@ -1,11 +1,7 @@
 package 接口;
 
-import com.goodwill.core.orm.Page;
-import com.goodwill.core.utils.json.JsonUtil;
-import com.goodwill.hdr.civ.base.action.CIVAction;
-import com.goodwill.hdr.civ.web.service.CheckReportService;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import 逻辑.CheckReportService;
 
 import java.util.ArrayList;
 import java.util.List;

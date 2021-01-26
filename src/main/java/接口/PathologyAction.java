@@ -1,39 +1,43 @@
 package 接口;
 
-import com.goodwill.core.orm.Page;
-import com.goodwill.core.utils.json.JsonUtil;
-import com.goodwill.hdr.civ.base.action.CIVAction;
-import com.goodwill.hdr.civ.web.service.PathologyReportService;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import 逻辑.PathologyReportService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 /**
- * @Description
- * 类描述：病理Action
- * @author songhaibo
- * @Date 2020年8月7日
+ *
+ * 类描述：病理接口
+ * @author 余涛
+ * @date 2021年1月26日
  */
-public class PathologyAction extends CIVAction {
+public class PathologyAction {
 
-	private static final long serialVersionUID = 1L;
-	@Autowired
+
 	private PathologyReportService pathologyReportService;
 
+
 	/**
-	 * @Description
-	 * 某次就诊的病理报告
+	 *
+	 * 方法描述: 查询患者某次就诊的病理报告
+	 *
+	 * @param patientId 患者编号
+	 * @param visitId 就诊次数
+	 * @param visitType 就诊类型
+	 * @param pno 页码
+	 * @param pageSize 分页单位
+	 *
 	 */
-	public void getPatientVisitPathology() {
-		int pno = StringUtils.isBlank(getParameter("pno")) ? 0 : Integer.parseInt(getParameter("pno"));
-		//参数 患者编号  就诊次  就诊类型
-		Page<Map<String, String>> result = pathologyReportService.getPathologyReportList(patientId, visitId, visitType,
+	public void getPatientVisitPathology(String patientId, String visitId, String visitType,
+										 int pno, int pageSize) {
+		/*如果前端参数 "pno" 为空，则设为0；
+		将参数传给逻辑层处理；
+		*/
+		 pathologyReportService.getPathologyReportList(patientId, visitId, visitType,
 				"REPORT_TIME", "desc", "", "", pno, pageSize);
-		//响应
-		renderJson(JsonUtil.getJSONString(result));
+
 	}
 
 	/**
