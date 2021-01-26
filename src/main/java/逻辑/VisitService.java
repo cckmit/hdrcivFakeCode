@@ -841,7 +841,7 @@ public class VisitService implements VisitService {
     public Map<String, String> getCurrentPatientInfo(String patientId, String outPatientId, String visitType) {
 
 
-        前端传入的 patientId和outPatientId 可能为多个 #传入的 outPatientId 形如 visitType|patientId #，为每一个患者执行{
+    /* 前端传入的 patientId和outPatientId 可能为多个 #传入的 outPatientId 形如 visitType|patientId #，为每一个患者执行{
             如果 患者就诊类型等于 02 ，那么{
                 增设查询条件 "VISIT_TYPE_CODE"= 02 ；
                 根据 patientId ，结合所有查询条件，从 HDR_PAT_ADT 中查出字段：
@@ -863,98 +863,70 @@ public class VisitService implements VisitService {
 
 
         }
-
-     /*  将查询结果作为参数调用 deleteMultiVisit 就诊去重：只留下转科情况的最后一次转科记录 # 取TRANS_NO最大的记录 #*/
-      /*  @param visitList 查询结果列表*/
+    */
+    /*  将查询结果作为参数调用 deleteMultiVisit 就诊去重：只留下转科情况的最后一次转科记录 # 取TRANS_NO最大的记录 #*/
+    /*  @param visitList 查询结果列表*/
          deleteMultiVisit(visitList);
 
-        //新增脱敏
-        powerService.getInfoHidden(visitList);
+    //姓名，性别，出生日期空值处理
 
-        //姓名，性别，出生日期空值处理
-        如果姓名、性别、出生日期任一项为空，那么{
+    /*     如果姓名、性别、出生日期任一项为空，那么{
             增设查询条件"VISIT_TYPE_CODE"=visitTypeCode；
             根据patientId,结合以上查询条件，从 HDR_PATIENT 中查出字段
             { "PERSON_NAME", "SEX_NAME", "DATE_OF_BIRTH", "IN_PATIENT_ID", "OUT_PATIENT_ID" }
 
         }
-
-        如果"VISIT_TYPE_CODE" 等于02，那么{
+    */
+    //末次住院主诊断
+    /*    如果"VISIT_TYPE_CODE" 等于02，那么{
             如果"DISCHARGE_TIME" 为空，那么 {
                 调用 getPatMainDiagInpbyConfig 方法：
                 @param patId 前端传入的patientId
                 @param visid 查出来的visitId
+    */
                 getPatMainDiagInpbyConfig(patId, visitId)；
+    /*
             }否则{
                 调用 getPatInpDiag 方法：
                 @param patId 前端传入的patientId
                 @param visid 查出来的visitId
+    */
                 getPatInpDiag(patId,visitId);
+    /*
                 如果 getPatInpDiag 没有查到，再调用 getPatMainDiagInpbyConfig 方法：
                 @param patId 前端传入的patientId
                 @param visid 查出来的visitId
-                etPatMainDiagInpbyConfig(patId,visitId);
+    */
+                getPatMainDiagInpbyConfig(patId,visitId);
+    /*
             }
 
         }
         如果"VISIT_TYPE_CODE" 不等于02，那么调用 getPatDiagOutp 方法：
             @param patId 前端传入的patientId
             @param visid 查出来的visitId
+    */
             getPatDiagOutp(patId,visitId，1);
+    /*
         将诊断信息映射给前端；
-        //统计患者过敏次数
+
+    */
 
 
-        //末次住院主诊断
-        //TODO 由于现场主诊断读取方式不一样，注释掉原方法，临时用新方法代替
-        List<Map<String, String>> patDiagList = new ArrayList<Map<String, String>>();
-        if ("02".equals(visitTypeCode)) {
-            if (StringUtils.isBlank(dischargeTime)) {
-                patDiagList = getPatMainDiagInpbyConfig(patString, String.valueOf(resultInt));
-            } else {
-                patDiagList = getPatInpDiag(patString, String.valueOf(resultInt));
-                if(patDiagList.size()==0){//这里再处理一下，如果出院了病案诊断表里面没有数据，再从病历诊断里面取数据，存在出院后归档前补充患者就诊信息的情况
-                    patDiagList = getPatMainDiagInpbyConfig(patString, String.valueOf(resultInt));
-                }
-            }
-        } else {
-            patDiagList = getPatDiagOutp(patString, String.valueOf(resultInt), "1");
+
+
+
+    //统计患者过敏次数
+
+    /*    从mysql中 civ_sys_config 表里 configcod 为 "StartUse_Allergy"的 configvalue 值；
+        如果对应的 configvalue 值等于 1 ，那么{
+            增设查询条件 "VISIT_TYPE_CODE" = type（前端传来的就诊类型）；
+            根据 patientId 从 "HDR_ALLERGY" 中查出 "ALLERGY_CATEGORY_CODE" ；
+            统计查询结果的数量作为过敏次数，返回给前端。
         }
-        if (patDiagList.size() > 0) {
-            Utils.checkAndPutToMap(map, "diagnosis_code", patDiagList.get(0).get("DIAGNOSIS_CODE"), "-", false);
-            Utils.checkAndPutToMap(map, "diagnosis_name", patDiagList.get(0).get("DIAGNOSIS_NAME"), "-", false);
-        } else {
-            map.put("diagnosis_code", "-");
-            map.put("diagnosis_name", "-");
-        }
+    */
 
-        //统计患者就诊总次数
-        int count = visitList.size();
-        map.put("visit_total", String.valueOf(count));
 
-        //统计患者过敏次数
-        long allergy = 0;
-        Map<String, String> result = powerDao.getSysConfigByConfigCode("StartUse_Allergy");
-        if ("1".equals(result.get("configValue"))) {
-            List<Map<String, String>> allergyList = new ArrayList<Map<String, String>>();
-            for (String pat : pats) {
-                String[] info = pat.split("\\|");
-                String type = info[0];
-                String id = info[1];
-                List<PropertyFilter> filters = new ArrayList<PropertyFilter>();
-                filters.add(new PropertyFilter("VISIT_TYPE_CODE", "STRING", MatchType.EQ.getOperation(), type));
-                List<Map<String, String>> allergys = hbaseDao.findConditionByPatient("HDR_ALLERGY", id, filters,
-                        "ALLERGY_CATEGORY_CODE");
-                allergyList.addAll(allergys);
-
-            }
-            if(allergyList!=null && allergyList.size()>0){
-                allergy = allergyList.size();
-            }
-
-        }
-        map.put("allergy_count", String.valueOf(allergy));
-        return map;
     }
 
     @Override

@@ -167,16 +167,16 @@ public class NursingService {
 /*
         循环调用 getVisitsAndAddToVisits 方法，根据前面查出的 IN_PATIENT_ID，查询当前年份往前20年的就诊记录返回给前端
             （以下为调用连接,传入的参数无意义）：*/
-            getVisitsAndAddToVisits(null,null,null);
+            getVisitsAndAddToVisits(null,null);
 
     }
 
     /**
-     * @param visits    存储就诊列表的集合
+     *
      * @param patientId 患者编号
      *  方法描述: 根据患者编号和年份查询就诊列表
      */
-    private void getVisitsAndAddToVisits(List<Map<String, String>> visits, String patientId, String year) {
+    private void getVisitsAndAddToVisits( String patientId, String year) {
       /*
         增设查询条件 ADMISSION_TIME 大于等于 year-01-01 00:00:00;
         增设查询条件 ADMISSION_TIME 小于等于 year-12-31 23:59:59;

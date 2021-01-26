@@ -1656,34 +1656,28 @@ public class OrderService {
      * @return
      */
     public Map<String, String> getPatLastInfoViewConfig() {
-        Map<String, String> confgiMap = new HashMap<String, String>();
-        confgiMap.put("name", "姓名");
-        confgiMap.put("birthday", "出生年月");
-        confgiMap.put("patient_id", "患者ID");
-        //就诊号  门诊显示
-        confgiMap.put("visit_no", "门诊号");
-        //就诊号  住院显示
-        confgiMap.put("in_no", "住院号");
-        confgiMap.put("visit_dept", "科室");
-        //就诊日期 门诊显示
-        confgiMap.put("visit_time", "就诊日期");
-        //就诊日期 住院显示
-        confgiMap.put("admission_time", "入院日期");
-        confgiMap.put("sex", "性别");
-        confgiMap.put("bed_no", "床号");
-        confgiMap.put("main_diag", "主诊断");
-        confgiMap.put("visit_num", "全部就诊");
-        String configStr = Config.getPATIENT_LAST_VISIT_INFO_VIEW();
-        if (org.apache.commons.lang.StringUtils.isNotBlank(configStr)) {
-            String[] configs = configStr.split(";");
-            for (String viewItem : configs) {
-                if (org.apache.commons.lang.StringUtils.isNotBlank(viewItem) && viewItem.contains("=")) {
-                    String[] viewItems = viewItem.split("=");
-                    confgiMap.put(viewItems[0], viewItems[1]);
-                }
-            }
-        }
-        return confgiMap;
+    /*    固定显示字段映射：
+
+        ("name", "姓名");
+        ("birthday", "出生年月");
+        ("patient_id", "患者ID");
+        就诊号  门诊显示
+        ("visit_no", "门诊号");
+        就诊号  住院显示
+        ("in_no", "住院号");
+        ("visit_dept", "科室");
+        就诊日期 门诊显示
+        ("visit_time", "就诊日期");
+        就诊日期 住院显示
+        ("admission_time", "入院日期");
+        ("sex", "性别");
+        ("bed_no", "床号");
+        ("main_diag", "主诊断");
+        ("visit_num", "全部就诊");
+        读取civ_cinfig表中 PATIENT_LAST_VISIT_INFO_VIEW 获取更多字段映射，格式如：
+         # num=序号;patient_id=患者ID;#
+         返回给前端
+*/
     }
 
     @Override

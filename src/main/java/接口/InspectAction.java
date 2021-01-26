@@ -1,11 +1,6 @@
 package 接口;
 
-import com.goodwill.core.orm.Page;
-import com.goodwill.core.utils.json.JsonUtil;
-import com.goodwill.hdr.civ.base.action.CIVAction;
-import com.goodwill.hdr.civ.web.service.InspectReportService;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import 逻辑.InspectReportService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +19,7 @@ public class InspectAction extends CIVAction {
 
 	private static final long serialVersionUID = 1L;
 
-	@Autowired
+
 	private InspectReportService inspectReportService;
 
 	/**
@@ -41,17 +36,24 @@ public class InspectAction extends CIVAction {
 	}
 
 	/**
-	 * @Description
+	 *
 	 * 某份检验报告的详情  基本信息+检验细项列表
+	 *
+	 *
+	 * @param patientId 患者编号
+	 * @param reportNo 报告号
+	 * @param pageNo 页码
+	 * @param pageSize 分页单位
+	 * @param show 显示标记   1:显示异常结果
 	 */
-	public void getInspectDetails() {
-		//报告号 显示标识 1:显示异常结果
-		String reportNo = getParameter("reportNo");
-		String show = getParameter("show");
-		Map<String, Object> result = inspectReportService.getInspectReportDetails(patientId, reportNo, pageNo,
+	public void getInspectDetails(String patientId, String reportNo,
+								  int pageNo, int pageSize,
+								  String show) {
+
+		/*将前端参数传递给逻辑层处理*/
+		inspectReportService.getInspectReportDetails(patientId, reportNo, pageNo,
 				pageSize, show);
-		//响应
-		renderJson(JsonUtil.getJSONString(result));
+
 	}
 
 	/**
